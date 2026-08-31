@@ -1,4 +1,3 @@
-"""Application models.
+from app.models.school import School
 
-No business tables are defined yet. Add SQLAlchemy models here as features are introduced.
-"""
+__all__ = ["School"]
