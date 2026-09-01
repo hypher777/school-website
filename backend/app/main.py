@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.configuration.settings import settings
 from app.routers.announcement import router as announcement_router
+from app.routers.event import router as event_router
 from app.routers.health import router as health_router
 from app.routers.school import router as school_router
 
@@ -26,6 +27,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(school_router)
 app.include_router(announcement_router)
+app.include_router(event_router)
 
 
 @app.get(

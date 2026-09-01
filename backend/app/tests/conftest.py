@@ -9,6 +9,7 @@ from app.database import session
 
 # Import models to ensure they're registered with Base
 from app.models.announcement import Announcement  # noqa: F401
+from app.models.event import Event  # noqa: F401
 from app.models.school import School  # noqa: F401
 
 
