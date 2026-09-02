@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, pool
 
 from app.core.configuration.settings import settings
 from app.database.base import Base
-from app.models import Announcement, Event, School
+from app.models import Admin, Announcement, Event, School
 
 config = context.config
 if config.config_file_name is not None:

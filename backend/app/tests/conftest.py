@@ -11,6 +11,7 @@ from app.database import session
 from app.models.announcement import Announcement  # noqa: F401
 from app.models.event import Event  # noqa: F401
 from app.models.school import School  # noqa: F401
+from app.models.admin import Admin  # noqa: F401
 
 
 # Create test database - must use same path as app.database.session looks for
@@ -55,8 +56,29 @@ def clear_database():
 @pytest.fixture(scope="function")
 def client():
     """Create a test client."""
-    with TestClient(app) as test_client:
+    with TestClient(app, headers={"host": "localhost"}) as test_client:
         yield test_client
+
+
+@pytest.fixture(scope="function")
+def admin_client(client, clear_database):
+    """Create a logged-in admin client for mutation tests."""
+    from sqlalchemy.orm import Session
+    from app.core.security import hash_password
+
+    db = Session(test_engine)
+    db.add(Admin(username="test-admin", password_hash=hash_password("test-password")))
+    db.commit()
+    db.close()
+    login = client.post(
+        "/api/auth/login",
+        json={"username": "test-admin", "password": "test-password"},
+    )
+    assert login.status_code == 200
+    client.headers.update(
+        {"Authorization": f"Bearer {login.json()['access_token']}"}
+    )
+    return client
 
 
 # Import app AFTER patching database

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.dependencies import get_db
+from app.core.security import get_current_admin
 from app.repositories.event import (
     create_event,
     delete_event,
@@ -51,6 +52,7 @@ async def get_event_endpoint(
 async def create_event_endpoint(
     event_data: EventCreate,
     db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
 ) -> EventResponse:
     """Create a new event."""
     event = create_event(db, event_data.model_dump())
@@ -67,6 +69,7 @@ async def update_event_endpoint(
     event_id: int,
     event_data: EventUpdate,
     db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
 ) -> EventResponse:
     """Update an event by ID."""
     event = get_event(db, event_id)
@@ -89,7 +92,11 @@ async def update_event_endpoint(
     summary="Delete event",
     description="Delete an event by ID.",
 )
-async def delete_event_endpoint(event_id: int, db: Session = Depends(get_db)) -> None:
+async def delete_event_endpoint(
+    event_id: int,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+) -> None:
     """Delete an event by ID."""
     event = get_event(db, event_id)
     if not event:

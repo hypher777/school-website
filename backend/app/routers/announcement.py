@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.dependencies import get_db
+from app.core.security import get_current_admin
 from app.repositories.announcement import (
     create_announcement,
     delete_announcement,
@@ -55,6 +56,7 @@ async def get_announcement_endpoint(
 async def create_announcement_endpoint(
     announcement_data: AnnouncementCreate,
     db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
 ) -> AnnouncementResponse:
     """Create a new announcement."""
     announcement = create_announcement(db, announcement_data.model_dump())
@@ -71,6 +73,7 @@ async def update_announcement_endpoint(
     announcement_id: int,
     announcement_data: AnnouncementUpdate,
     db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
 ) -> AnnouncementResponse:
     """Update an announcement by ID."""
     announcement = get_announcement(db, announcement_id)
@@ -94,7 +97,9 @@ async def update_announcement_endpoint(
     description="Delete an announcement by ID.",
 )
 async def delete_announcement_endpoint(
-    announcement_id: int, db: Session = Depends(get_db)
+    announcement_id: int,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
 ) -> None:
     """Delete an announcement by ID."""
     announcement = get_announcement(db, announcement_id)

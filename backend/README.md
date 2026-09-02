@@ -110,7 +110,7 @@ Edit `.env`:
 DATABASE_URL=postgresql://your_user:your_password@localhost:5432/school_db
 SECRET_KEY=your-secure-random-key
 APP_ENV=development
-DEBUG=true
+DEBUG=false
 ```
 
 ### 5. Create database (if needed)
@@ -120,6 +120,11 @@ createdb school_db  # On Linux/macOS with PostgreSQL installed
 ```
 
 Or use your PostgreSQL client of choice.
+
+For production, set `APP_ENV=production`, `DEBUG=false`, a randomly generated
+`SECRET_KEY` of at least 32 characters, the public frontend origin in
+`CORS_ORIGINS`, and the deployment hostname(s) in `ALLOWED_HOSTS`. Do not
+commit `.env`.
 
 ### 6. Run migrations
 
@@ -135,10 +140,42 @@ uvicorn app.main:app --reload
 
 The API will be available at `http://localhost:8000`
 
+For a production process:
+
+```bash
+alembic upgrade head
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+`GET /api/health` verifies database connectivity and returns `503` when the
+database is unavailable. Logs are written to standard output.
+
 ### 8. Access API documentation
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+
+### Admin authentication
+
+Apply migrations, then create the first development admin interactively. The
+password is prompted twice and stored only as an Argon2 hash:
+
+```powershell
+alembic upgrade head
+python -m app.scripts.create_admin --username admin
+```
+
+Log in to obtain a JWT:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{"username": "admin", "password": "your-password"}
+```
+
+Send the returned token as `Authorization: Bearer <token>` for admin
+mutations. School, announcement, and event GET endpoints remain public.
 
 ## API Endpoints
 
@@ -265,12 +302,12 @@ alembic downgrade base  # Rollback all migrations
 alembic history
 ```
 
-## Docker Development
+## Docker deployment
 
 ### Build and run with Docker Compose
 
 ```bash
-docker-compose up -d
+docker compose up -d --build
 ```
 
 This will:
@@ -287,12 +324,12 @@ This will:
 ### Stop the services
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 To also remove volumes:
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Production Deployment

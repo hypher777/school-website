@@ -5,19 +5,19 @@ from datetime import datetime, timedelta
 class TestGetEvent:
     """Tests for GET /api/events."""
 
-    def test_get_events_empty(self, client):
+    def test_get_events_empty(self, admin_client):
         """Test GET events when no events exist."""
-        response = client.get("/api/events")
+        response = admin_client.get("/api/events")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_get_event_not_found(self, client):
+    def test_get_event_not_found(self, admin_client):
         """Test GET event when it does not exist."""
-        response = client.get("/api/events/999")
+        response = admin_client.get("/api/events/999")
         assert response.status_code == 404
         assert response.json()["detail"] == "Event not found"
 
-    def test_get_event_found(self, client):
+    def test_get_event_found(self, admin_client):
         """Test GET event when an event exists."""
         event_data = {
             "title": "Spring Fair",
@@ -26,10 +26,10 @@ class TestGetEvent:
             "location": "Main Hall",
             "published": True,
         }
-        create_response = client.post("/api/events", json=event_data)
+        create_response = admin_client.post("/api/events", json=event_data)
         assert create_response.status_code == 201
 
-        response = client.get("/api/events/1")
+        response = admin_client.get("/api/events/1")
         assert response.status_code == 200
         data = response.json()
         assert data["title"] == "Spring Fair"
@@ -42,7 +42,7 @@ class TestGetEvent:
 class TestCreateEvent:
     """Tests for POST /api/events."""
 
-    def test_create_event_success(self, client):
+    def test_create_event_success(self, admin_client):
         """Test creating an event."""
         event_data = {
             "title": "Science Expo",
@@ -51,16 +51,16 @@ class TestCreateEvent:
             "location": "Science Block",
             "published": False,
         }
-        response = client.post("/api/events", json=event_data)
+        response = admin_client.post("/api/events", json=event_data)
         assert response.status_code == 201
         data = response.json()
         assert data["title"] == "Science Expo"
         assert data["event_date"] == "2026-06-15T10:30:00"
         assert data["published"] is False
 
-    def test_create_event_validation_error(self, client):
+    def test_create_event_validation_error(self, admin_client):
         """Test creating an event with invalid data."""
-        response = client.post(
+        response = admin_client.post(
             "/api/events",
             json={
                 "title": "",
@@ -75,11 +75,11 @@ class TestCreateEvent:
 class TestListEvents:
     """Tests for listing events."""
 
-    def test_list_events_orders_by_event_date_desc(self, client):
+    def test_list_events_orders_by_event_date_desc(self, admin_client):
         """Test events are returned sorted by most recent event date first."""
         earlier = "2026-02-10T09:00:00"
         later = "2026-07-12T09:00:00"
-        client.post(
+        admin_client.post(
             "/api/events",
             json={
                 "title": "Early Event",
@@ -88,7 +88,7 @@ class TestListEvents:
                 "location": "A",
             },
         )
-        client.post(
+        admin_client.post(
             "/api/events",
             json={
                 "title": "Later Event",
@@ -98,7 +98,7 @@ class TestListEvents:
             },
         )
 
-        response = client.get("/api/events")
+        response = admin_client.get("/api/events")
         assert response.status_code == 200
         items = response.json()
         assert [item["title"] for item in items] == ["Later Event", "Early Event"]
@@ -107,18 +107,18 @@ class TestListEvents:
 class TestUpdateEvent:
     """Tests for PUT /api/events/{event_id}."""
 
-    def test_update_event_not_found(self, client):
+    def test_update_event_not_found(self, admin_client):
         """Test updating an event that doesn't exist."""
-        response = client.put(
+        response = admin_client.put(
             "/api/events/999",
             json={"title": "Updated event"},
         )
         assert response.status_code == 404
         assert response.json()["detail"] == "Event not found"
 
-    def test_update_event_success(self, client):
+    def test_update_event_success(self, admin_client):
         """Test updating an event with valid data."""
-        client.post(
+        admin_client.post(
             "/api/events",
             json={
                 "title": "Original Event",
@@ -129,7 +129,7 @@ class TestUpdateEvent:
             },
         )
 
-        response = client.put(
+        response = admin_client.put(
             "/api/events/1",
             json={
                 "title": "Updated Event",
@@ -143,9 +143,9 @@ class TestUpdateEvent:
         assert data["description"] == "New description"
         assert data["published"] is True
 
-    def test_update_event_partial(self, client):
+    def test_update_event_partial(self, admin_client):
         """Test updating only some fields."""
-        client.post(
+        admin_client.post(
             "/api/events",
             json={
                 "title": "Original Event",
@@ -155,7 +155,7 @@ class TestUpdateEvent:
             },
         )
 
-        response = client.put(
+        response = admin_client.put(
             "/api/events/1",
             json={"location": "New Hall"},
         )
@@ -168,15 +168,15 @@ class TestUpdateEvent:
 class TestDeleteEvent:
     """Tests for DELETE /api/events/{event_id}."""
 
-    def test_delete_event_not_found(self, client):
+    def test_delete_event_not_found(self, admin_client):
         """Test deleting an event that doesn't exist."""
-        response = client.delete("/api/events/999")
+        response = admin_client.delete("/api/events/999")
         assert response.status_code == 404
         assert response.json()["detail"] == "Event not found"
 
-    def test_delete_event_success(self, client):
+    def test_delete_event_success(self, admin_client):
         """Test deleting an existing event."""
-        client.post(
+        admin_client.post(
             "/api/events",
             json={
                 "title": "Delete Me",
@@ -186,8 +186,8 @@ class TestDeleteEvent:
             },
         )
 
-        response = client.delete("/api/events/1")
+        response = admin_client.delete("/api/events/1")
         assert response.status_code == 204
 
-        get_response = client.get("/api/events/1")
+        get_response = admin_client.get("/api/events/1")
         assert get_response.status_code == 404

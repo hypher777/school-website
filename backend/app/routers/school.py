@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.dependencies import get_db
+from app.core.security import get_current_admin
 from app.repositories.school import (
     count_schools,
     create_school,
@@ -61,6 +62,7 @@ async def create_school_endpoint(
 async def update_school_endpoint(
     school_data: SchoolUpdate,
     db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
 ) -> SchoolResponse:
     """Update the school information.
 

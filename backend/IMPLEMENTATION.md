@@ -1,7 +1,7 @@
 # School Website Backend - Implementation Summary
 
 ## Overview
-A production-quality FastAPI backend MVP has been successfully built for a school website. The backend features a complete CRUD API for managing school information, comprehensive tests, Docker support, and production-ready configuration.
+A production-quality FastAPI backend MVP has been successfully built for a school website. The backend features a complete CRUD API for managing school information, admin JWT authentication, comprehensive tests, Docker support, and production-ready configuration.
 
 ## Files Created
 
